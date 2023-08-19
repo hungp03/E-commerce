@@ -1,5 +1,9 @@
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../middleware/jwt");
 
 //Register
 const register = asyncHandler(async (req, res) => {
@@ -23,9 +27,11 @@ const register = asyncHandler(async (req, res) => {
 });
 
 //Login
+//RefreshToken: cấp mới AccessToken
+//AccessToken: Xác thực, phân quyền người dùng
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  //kiểm tra trước để giảm tải cho db
+  //kiểm tra trước đầu vào để giảm tải cho DB
   if (!email || !password) {
     return res.status(400).json({
       success: false,
@@ -34,13 +40,25 @@ const login = asyncHandler(async (req, res) => {
   }
   const response = await User.findOne({ email });
   //console.log(response.isCorrectPassword(password))
-  //Waiting pw check => await
+  //Đợi hàm check pw => await
   if (response && (await response.isCorrectPassword(password))) {
-    //Destructuring pw and role
     //toObject: convert MongoObject to plain Object, to use Destructuring and rest operator
-    const { password, role, ...userData } = response.toObject(); 
+    //Tách passwỏd và role ra khỏi response
+    const { password, role, ...userData } = response.toObject();
+    //Tạo accessToken
+    const accessToken = generateAccessToken(response._id, role);
+    //Tạo RefreshToken
+    const refreshToken = generateRefreshToken(response._id);
+    //Lưu refreshToken vào DB
+    await User.findOneAndUpdate(response._id, { refreshToken }, { new: true });
+    //Lưu refreshToken vào cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 864000000,
+    });
     return res.status(200).json({
       success: true,
+      accessToken,
       userData,
     });
   } else {
@@ -48,7 +66,17 @@ const login = asyncHandler(async (req, res) => {
   }
 });
 
+const getCurrentUser = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  //Dùng select trong mongo để chọn những field cần lấy, thêm dấu '-' để ẩn
+  const user = await User.findById(_id).select('-refreshToken -password -role');
+  return res.status(200).json({
+    success: false,
+    result: user ? user : "user not found",
+  });
+});
 module.exports = {
   register,
   login,
+  getCurrentUser,
 };
