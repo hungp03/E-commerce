@@ -229,6 +229,7 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
     updatedUser: response ? response : "Nothing updated",
   });
 });
+
 module.exports = {
   register,
   login,
