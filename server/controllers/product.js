@@ -1,4 +1,3 @@
-const { query } = require("express");
 const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
@@ -48,22 +47,26 @@ const getProducts = asyncHandler(async (req, res) => {
   let queryCommand = Product.find(formatedQueries);
 
   //Sorting
-  if (req.query.sort){
+  if (req.query.sort) {
     //Split: abc,efg => [abc, efg] => join => [abc efg]
-    const sortBy = req.query.sort.split(',').join(' ')
-    queryCommand = queryCommand.sort(sortBy)
+    const sortBy = req.query.sort.split(",").join(" ");
+    queryCommand = queryCommand.sort(sortBy);
   }
-  //Moongoose 7 trở lên không hỗ trợ callback function trong exec()
-  /*queryCommand.exec(async(err, response)=>{
-    if (err) throw new Error(err.message);
-    const counts = await Product.find(formatedQueries).countDocuments();
-    return res.status(200).json({
-      success: products ? true : false,
-      products: products ? products : "No data",
-      counts 
-    });
-  })
-  */
+
+  //Fields limit
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    queryCommand = queryCommand.select(fields);
+  }
+
+  //Pagination
+  //Limit: số object lấy về trong 1 lần của API
+  //Skip: số lượt bỏ qua
+  const page = +req.query.page || 1; //Dấu + dùng để convert từ chuỗi qua số (req.query là string)
+  const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
+  const skip = (page - 1) * limit;
+  queryCommand.skip(skip).limit(limit);
+
   //excute query
   //số lượng sp thỏa điều kiện !== số lượng sp mà API gọi ra
   queryCommand
@@ -105,10 +108,57 @@ const deleteProduct = asyncHandler(async (req, res) => {
   });
 });
 
+//Rating
+const ratings = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { star, comment, pid } = req.body;
+  if (!pid || !star) {
+    throw new Error("Missing input!");
+  }
+
+  const ratingProduct = await Product.findById(pid);
+  //Convert objId sang string => khớp với kiểu dữ liệu của _id
+  const alreadyRating = ratingProduct.ratings.find(
+    (rating) => rating.postedBy.toString() === _id
+  );
+  //console.log(alreadyRating);
+  if (!alreadyRating) {
+    //add star and comment
+    const response = await Product.findByIdAndUpdate(
+      pid,
+      {
+        $push: {
+          ratings: {
+            star,
+            comment,
+            postedBy: _id,
+          },
+        },
+      },
+      { new: true }
+    );
+    //console.log(response);
+  } else {
+    //Update lại star và comment
+    await Product.updateOne(
+      {
+        ratings: { $elemMatch: alreadyRating },
+      },
+      {
+        $set: { "ratings.$.star": star, "ratings.$.comment": comment },
+      },
+      { new: true }
+    );
+  }
+  return res.status(200).json({
+    status: true,
+  });
+});
 module.exports = {
   createProduct,
   getProduct,
   getProducts,
   updateProduct,
   deleteProduct,
+  ratings,
 };
