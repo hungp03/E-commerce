@@ -74,9 +74,11 @@ const login = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   //Dùng select trong mongo để chọn những field cần lấy, thêm dấu '-' để ẩn
-  const user = await User.findById(_id).select("-refreshToken -password -role -passwordResetExpires -passwordResetToken");
+  const user = await User.findById(_id).select(
+    "-refreshToken -password -role -passwordResetExpires -passwordResetToken"
+  );
   return res.status(200).json({
-    success: user? true: false,
+    success: user ? true : false,
     result: user ? user : "user not found",
   });
 });

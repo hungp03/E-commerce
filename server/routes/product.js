@@ -7,5 +7,5 @@ router.get("/", ctrls.getProducts);
 router.get("/:pid", ctrls.getProduct);
 router.put("/update/:pid", [verifyAccessToken, isAdmin], ctrls.updateProduct);
 router.delete("/delete", [verifyAccessToken, isAdmin], ctrls.deleteProduct);
-router.put("/ratings", verifyAccessToken, ctrls.ratings)
+router.put("/ratings", verifyAccessToken, ctrls.ratings);
 module.exports = router;
