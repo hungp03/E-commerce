@@ -43,8 +43,8 @@ const likeBlog = asyncHandler(async (req, res) => {
   const alreadyDisliked = blog?.dislikes?.find((el) => el.toString() === _id);
   if (alreadyDisliked) {
     const response = await Blog.findByIdAndUpdate(
-      bid,  
-      { $pull: { dislikes: _id }},
+      bid,
+      { $pull: { dislikes: _id } },
       { new: true }
     );
     return res.json({
@@ -56,7 +56,7 @@ const likeBlog = asyncHandler(async (req, res) => {
   if (isLiked) {
     const response = await Blog.findByIdAndUpdate(
       bid,
-      { $pull: { likes: _id }},
+      { $pull: { likes: _id } },
       { new: true }
     );
     return res.json({
@@ -66,7 +66,7 @@ const likeBlog = asyncHandler(async (req, res) => {
   } else {
     const response = await Blog.findByIdAndUpdate(
       bid,
-      { $push: { likes: _id }},
+      { $push: { likes: _id } },
       { new: true }
     );
     return res.json({
@@ -84,8 +84,8 @@ const dislikeBlog = asyncHandler(async (req, res) => {
   const alreadyLiked = blog?.likes?.find((el) => el.toString() === _id);
   if (alreadyLiked) {
     const response = await Blog.findByIdAndUpdate(
-      bid,  
-      { $pull: {likes: _id }},
+      bid,
+      { $pull: { likes: _id } },
       { new: true }
     );
     return res.json({
@@ -97,7 +97,7 @@ const dislikeBlog = asyncHandler(async (req, res) => {
   if (isDisliked) {
     const response = await Blog.findByIdAndUpdate(
       bid,
-      { $pull: { dislikes: _id }},
+      { $pull: { dislikes: _id } },
       { new: true }
     );
     return res.json({
@@ -107,7 +107,7 @@ const dislikeBlog = asyncHandler(async (req, res) => {
   } else {
     const response = await Blog.findByIdAndUpdate(
       bid,
-      { $push: { dislikes: _id }},
+      { $push: { dislikes: _id } },
       { new: true }
     );
     return res.json({
@@ -116,10 +116,39 @@ const dislikeBlog = asyncHandler(async (req, res) => {
     });
   }
 });
+
+const excludedFields = "firstname lastname";
+const getBlog = asyncHandler(async (req, res) => {
+  const { bid } = req.params;
+  const blog = await Blog.findByIdAndUpdate(
+    bid,
+    { $inc: { numberView: 1 } },
+    { new: true }
+  )
+    .populate("likes", excludedFields)
+    .populate("dislikes", excludedFields);
+  return res.json({
+    success: blog ? true : false,
+    result: blog,
+  });
+});
+
+const deleteBlog = asyncHandler(async (req, res) => {
+  const { bid } = req.params;
+  const blog = await Blog.findByIdAndDelete(bid);
+  return res.json({
+    success: blog ? true : false,
+    result: blog || "Something went wrong",
+  });
+});
+
+
 module.exports = {
   createBlog,
   updateBlog,
   getBlogs,
   likeBlog,
-  dislikeBlog
+  dislikeBlog,
+  getBlog,
+  deleteBlog
 };

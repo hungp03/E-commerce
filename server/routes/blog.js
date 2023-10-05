@@ -4,9 +4,10 @@ const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
 router.post("/", [verifyAccessToken, isAdmin], ctrls.createBlog);
 router.get("/", ctrls.getBlogs);
+router.get('/b/:bid', ctrls.getBlog)
 router.put("/like/:bid", [verifyAccessToken], ctrls.likeBlog);
 router.put("/dislike/:bid", [verifyAccessToken], ctrls.dislikeBlog);
-router.put("/update/:bid", [verifyAccessToken, isAdmin], ctrls.updateBlog);
-// router.delete("/:bcid", [verifyAccessToken, isAdmin], ctrls.deleteCategory);
+router.put("/:bid", [verifyAccessToken, isAdmin], ctrls.updateBlog);
+router.delete("/:bid", [verifyAccessToken, isAdmin], ctrls.deleteBlog);
 
 module.exports = router;
