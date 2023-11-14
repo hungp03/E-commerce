@@ -17,7 +17,8 @@ router.put(
   [verifyAccessToken, isAdmin],
   ctrls.updateUserByAdmin
 );
-router.put('/address', [verifyAccessToken], ctrls.updateUserAddress)
+router.put("/address", [verifyAccessToken], ctrls.updateUserAddress);
+router.put("/cart", [verifyAccessToken], ctrls.updateCart);
 module.exports = router;
 
 //Post, put : req.body (Tránh lộ thông tin)
