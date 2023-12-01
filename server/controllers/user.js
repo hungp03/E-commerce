@@ -101,16 +101,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       ? generateAccessToken(response._id, response.role)
       : "Refresh token not matched",
   });
-  //Can't throw Error when RF token expired
-  /* jwt.verify(cookie.refreshToken, process.env.JWT_SECRET, async (err, decode) => {
-      if (err) throw new Error("Invalid RF token");
-      //Check xem có trùng RF token với DB không
-      const response = await User.findOne({_id: decode._id, refreshToken: cookie.refreshToken,});
-      res.status(200).json({
-        success: response ? true : false,
-        newAccessToken: response ? generateAccessToken(response._id, response.role) : "Refresh token not matched",
-      });
-    });*/
 });
 
 const logout = asyncHandler(async (req, res) => {

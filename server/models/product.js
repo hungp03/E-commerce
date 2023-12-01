@@ -10,11 +10,12 @@ var productSchema = new mongoose.Schema({
   //Slug: Apple Watch => apple-watch
   slug: {
     type: String,
-    unique: true,
+    require: true,
+    // unique: true,
     lowercase: true,
   },
   description: {
-    type: String,
+    type: Array,
     required: true,
   },
   brand: {
@@ -26,8 +27,7 @@ var productSchema = new mongoose.Schema({
     required: true,
   },
   category: {
-    type: mongoose.Types.ObjectId,
-    ref: "Category",
+    type: String
   },
   quantity: {
     type: Number,
@@ -42,7 +42,7 @@ var productSchema = new mongoose.Schema({
   },
   color: {
     type: String,
-    enum: ["Black", "Gray", "Red"],
+    require: true
   },
   ratings: [
     {
@@ -61,7 +61,7 @@ var productSchema = new mongoose.Schema({
     default: 0,
   },
 }, {
-    timestamps: true
+  timestamps: true
 });
 
 //Export the model
